@@ -1,0 +1,29 @@
+# Keil MDK build artifacts and user-specific settings
+EM_System/MDK-ARM/EM_System/
+EM_System/MDK-ARM/DebugConfig/
+EM_System/MDK-ARM/*.uvguix.*
+EM_System/MDK-ARM/*.uvoptx
+*.axf
+*.bin
+*.crf
+*.d
+*.dep
+*.hex
+*.htm
+*.lnp
+*.map
+*.o
+*.sct
+*.lst
+
+# Python virtual environment and generated caches
+PC_Host/.venv/
+PC_Host/__pycache__/
+*.py[cod]
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.code-workspace
+Thumbs.db
+Desktop.ini
