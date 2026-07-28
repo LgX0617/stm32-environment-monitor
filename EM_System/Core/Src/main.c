@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -30,6 +31,7 @@
 #include "uart.h"
 #include "environment.h"
 #include "alarm.h"
+#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,8 +99,13 @@ int main(void)
   MX_ADC3_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+	HAL_Delay(20);
+	OLED_Init();
+	OLED_NewFrame();
+	OLED_PrintASCIIString(0, 0, "Hello OLED", &afont16x8, OLED_COLOR_NORMAL);
+	OLED_ShowFrame();
 		UART_RxStart();
 	HAL_ADCEx_Calibration_Start(&hadc3);
 	HAL_TIM_Base_Start_IT(&htim2);
