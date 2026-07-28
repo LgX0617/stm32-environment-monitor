@@ -9,6 +9,9 @@
 
 #include "environment.h"
 
+#include "led.h"
+
 void Alarm_Update(EnvironmentData *date,const Threshold *threshold);
 
 #endif
+

@@ -11,6 +11,10 @@
 
 void SensorData_Send(EnvironmentData *data);
 
+void UART_RxStart(void);
+
+uint8_t UART_ProcessCommand(Threshold *threshold);
+
 #endif
 
 

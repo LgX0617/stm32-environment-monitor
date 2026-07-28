@@ -11,10 +11,12 @@ void Alarm_Update(EnvironmentData *data,const Threshold *threshold){
 			{
 				data->alarm = 1;
 				HAL_GPIO_WritePin(BEEP_GPIO_Port,BEEP_Pin,GPIO_PIN_SET);
+				Led_Open();
 			}
 			else {
 				data->alarm = 0;
 				HAL_GPIO_WritePin(BEEP_GPIO_Port,BEEP_Pin,GPIO_PIN_RESET);
+				Led_Close();
 			}
 		
 }
