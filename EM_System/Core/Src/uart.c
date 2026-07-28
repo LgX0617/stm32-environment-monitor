@@ -29,6 +29,7 @@ void UART_RxStart(void){
 
 //处理命令
 uint8_t UART_ProcessCommand(Threshold *threshold){
+	updated = 0;
 	if(rx_frame_ready == 0)
 	{
 		return 0;
@@ -43,10 +44,14 @@ uint8_t UART_ProcessCommand(Threshold *threshold){
 		sprintf(buffer,"$ACK,L_thr,%u\r\n",new_light_threshold);
 		HAL_UART_Transmit(&huart1,(uint8_t*)buffer,strlen(buffer),HAL_MAX_DELAY);
 		updated = 1;
-	}else{
+	}else if(parse_result != 1){
 		sprintf(buffer,"$ERR,FORMAT\r\n");
 		HAL_UART_Transmit(&huart1,(uint8_t*)buffer,strlen(buffer),HAL_MAX_DELAY);
+	}else if(new_light_threshold >4095){
+		sprintf(buffer,"$ERR,RANGE\r\n");
+		HAL_UART_Transmit(&huart1,(uint8_t*)buffer,strlen(buffer),HAL_MAX_DELAY);
 	}
+	
 	rx_frame_ready = 0;
   rx_index = 0;
   UART_RxStart();

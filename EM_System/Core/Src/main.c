@@ -50,7 +50,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t sample_flag = 0;//定时器中断完成标志
+volatile uint8_t sample_flag = 0;//定时器中断完成标志
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
