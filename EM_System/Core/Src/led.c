@@ -7,5 +7,3 @@ void Led_Open(){
 void Led_Close(){
 	HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,GPIO_PIN_SET);
 }
-
-	

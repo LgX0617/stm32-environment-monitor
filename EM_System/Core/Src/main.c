@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -32,6 +33,7 @@
 #include "environment.h"
 #include "alarm.h"
 #include "oled.h"
+#include "display.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,12 +102,10 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   MX_SPI1_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 	HAL_Delay(20);
 	OLED_Init();
-	OLED_NewFrame();
-	OLED_PrintASCIIString(0, 0, "Hello OLED", &afont16x8, OLED_COLOR_NORMAL);
-	OLED_ShowFrame();
 		UART_RxStart();
 	HAL_ADCEx_Calibration_Start(&hadc3);
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -121,7 +121,8 @@ int main(void)
 			sample_flag =0;
 			g_env_data.light = Light_Read();
 			Alarm_Update(&g_env_data,&g_threshold);
-			SensorData_Send(&g_env_data);
+			SensorData_Send(&g_env_data,&g_threshold);
+			Display_Update(&g_env_data);
 		}
 		//接收命令后重新判断阈值
 		if(UART_ProcessCommand(&g_threshold) == 1){

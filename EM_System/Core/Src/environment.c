@@ -7,5 +7,5 @@ EnvironmentData g_env_data = {0};
 */
 Threshold g_threshold = 
 				{
-					300,800,3000
+					300,800,4000
 				};

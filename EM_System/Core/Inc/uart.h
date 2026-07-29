@@ -9,7 +9,7 @@
 
 #include "environment.h"
 
-void SensorData_Send(EnvironmentData *data);
+void SensorData_Send(EnvironmentData *data,Threshold *thr);
 
 void UART_RxStart(void);
 
@@ -19,7 +19,7 @@ uint8_t UART_ProcessCommand(Threshold *threshold);
 //帧头
 #define FRAME_HEAD  0xAA
 
-#define UART_TX_FRAME_MAX  10
+#define UART_TX_FRAME_MAX  20
 
 //数据指令接收状态
 typedef enum

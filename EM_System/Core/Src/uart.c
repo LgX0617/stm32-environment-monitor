@@ -1,6 +1,6 @@
 #include "uart.h"
 
-static uint8_t rx_byte;                         //当前收到的一个字节
+static uint8_t rx_dma_byte[64];                         //当前收到的一个字节
 
 static RxState_t state;                             //当前状态
 static Command_t rx_cmd;                            //当前命令
@@ -14,10 +14,16 @@ static void UART_SendFrame(uint8_t cmd,
                            const uint8_t *payload,
                            uint8_t length);
 													 
+static void UART_ParseByte(uint8_t byte);
+													 
+static uint8_t tx_dma_buffer[UART_TX_FRAME_MAX];            //发送数据存储
+static volatile uint8_t tx_busy = 0;                         //发送完成标志位
+													 
 //发送传感器数据
-void SensorData_Send(EnvironmentData *data){
-	uint8_t payload[7];
+void SensorData_Send(EnvironmentData *data,Threshold *thr){
+	uint8_t payload[13];
    uint16_t temperature_raw;
+	uint16_t temperature_max_x10_raw;
 	
 	temperature_raw = (uint16_t)data->temperature_x10;
 	
@@ -32,13 +38,26 @@ void SensorData_Send(EnvironmentData *data){
 	
 	payload[6] = data->alarm;
 	
-	UART_SendFrame(CMD_DATA,payload,7);
+	temperature_max_x10_raw = (uint16_t)thr->temperature_max_x10;
+	
+	payload[7] = (uint8_t)(temperature_max_x10_raw>>8);
+	payload[8] = (uint8_t)temperature_max_x10_raw;
+	
+	payload[9] = (uint8_t)(thr->humidity_max_x10>>8);
+	payload[10] = (uint8_t)thr->humidity_max_x10;
+	
+	payload[11] = (uint8_t)(thr->light_max>>8);
+	payload[12] = (uint8_t)thr->light_max;
+	
+	
+	UART_SendFrame(CMD_DATA,payload,13);
 }
 
 //启动接收中断
 //接收命令
 void UART_RxStart(void){
-	HAL_UART_Receive_IT(&huart1,&rx_byte,1);
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart1,rx_dma_byte,sizeof(rx_dma_byte));
+	__HAL_DMA_DISABLE_IT(huart1.hdmarx,DMA_IT_HT);
 }
 
 //处理命令
@@ -116,10 +135,21 @@ uint8_t UART_ProcessCommand(Threshold *threshold){
 }
 
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
+	uint16_t i;
 	if(huart == &huart1)
 		{
-		switch(state){
+		for(i = 0;i<Size;i++)
+			{
+				 UART_ParseByte(rx_dma_byte[i]);
+			}
+			UART_RxStart();
+	}
+}
+
+static void UART_ParseByte(uint8_t rx_byte)
+{
+    switch(state){
 			case WAIT_HEAD:
 				if((frame_ready == 0) && (rx_byte == FRAME_HEAD))
 				{
@@ -163,31 +193,39 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				state = WAIT_HEAD;
 				break;
 		}
-		UART_RxStart();
-	}
 }
 
 static void UART_SendFrame(uint8_t cmd,
                            const uint8_t *payload,
                            uint8_t length)
 {
-    uint8_t tx_frame[UART_TX_FRAME_MAX];
+	if(tx_busy == 0)
+	{
     uint8_t index = 0;
     uint8_t tx_checksum = cmd;
     uint8_t i;
 
-    tx_frame[index++] = FRAME_HEAD;
-    tx_frame[index++] = cmd;
+    tx_dma_buffer[index++] = FRAME_HEAD;
+    tx_dma_buffer[index++] = cmd;
 
     for (i = 0; i < length; i++)
     {
-        tx_frame[index++] = payload[i];
+        tx_dma_buffer[index++] = payload[i];
         tx_checksum += payload[i];
     }
 
-    tx_frame[index++] = tx_checksum;
+    tx_dma_buffer[index++] = tx_checksum;
+		tx_busy = 1;
 
-    HAL_UART_Transmit(&huart1, tx_frame, index, HAL_MAX_DELAY);
+    HAL_UART_Transmit_DMA(&huart1, tx_dma_buffer, index);
+	}
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart == &huart1)
+	{
+		tx_busy= 0;
+	}
 }
 
 
