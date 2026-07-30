@@ -796,6 +796,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\display.c</FilePath>
             </File>
+            <File>
+              <FileName>aht20.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\aht20.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

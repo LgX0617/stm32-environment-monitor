@@ -34,6 +34,7 @@
 #include "alarm.h"
 #include "oled.h"
 #include "display.h"
+#include "aht20.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -106,7 +107,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_Delay(20);
 	OLED_Init();
-		UART_RxStart();
+	AHT20_Init();
+	UART_RxStart();
 	HAL_ADCEx_Calibration_Start(&hadc3);
 	HAL_TIM_Base_Start_IT(&htim2);
 
@@ -120,6 +122,7 @@ int main(void)
 		{
 			sample_flag =0;
 			g_env_data.light = Light_Read();
+      AHT20_read(&g_env_data);
 			Alarm_Update(&g_env_data,&g_threshold);
 			SensorData_Send(&g_env_data,&g_threshold);
 			Display_Update(&g_env_data);
