@@ -132,7 +132,7 @@ int main(void)
 			if(HAL_GetTick() - key0_tick >= 20)
 			{
 				key0_flag = 0;
-				if(HAL_GPIO_ReadPin(KEY_UP_GPIO_Port,KEY_UP_Pin) == RESET){
+				if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == RESET){
 				Display_AdjustThreshold(-1);
 				}
 			}
@@ -142,7 +142,7 @@ int main(void)
 			if(HAL_GetTick() - key1_tick >= 20)
 			{
 				key1_flag = 0;
-				if(HAL_GPIO_ReadPin(KEY_UP_GPIO_Port,KEY_UP_Pin) == RESET){
+				if(HAL_GPIO_ReadPin(KEY1_GPIO_Port,KEY1_Pin) == RESET){
 				Display_AdjustThreshold(1);
 				}
 			}
