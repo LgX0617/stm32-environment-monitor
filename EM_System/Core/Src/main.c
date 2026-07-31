@@ -35,6 +35,7 @@
 #include "oled.h"
 #include "display.h"
 #include "aht20.h"
+#include "key.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,6 +119,35 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		if(key_up_flag == 1U){
+			if(HAL_GetTick() - key_up_tick >= 20)
+			{
+				key_up_flag = 0;
+				if(HAL_GPIO_ReadPin(KEY_UP_GPIO_Port,KEY_UP_Pin) == SET){
+				Display_NextPage();
+				}
+			}
+		}
+		if (key0_flag == 1U){
+			if(HAL_GetTick() - key0_tick >= 20)
+			{
+				key0_flag = 0;
+				if(HAL_GPIO_ReadPin(KEY_UP_GPIO_Port,KEY_UP_Pin) == RESET){
+				Display_AdjustThreshold(-1);
+				}
+			}
+		}
+
+		if (key1_flag == 1U){
+			if(HAL_GetTick() - key1_tick >= 20)
+			{
+				key1_flag = 0;
+				if(HAL_GPIO_ReadPin(KEY_UP_GPIO_Port,KEY_UP_Pin) == RESET){
+				Display_AdjustThreshold(1);
+				}
+			}
+		}
+
 		if(sample_flag == 1)
 		{
 			sample_flag =0;
@@ -125,7 +155,7 @@ int main(void)
       AHT20_read(&g_env_data);
 			Alarm_Update(&g_env_data,&g_threshold);
 			SensorData_Send(&g_env_data,&g_threshold);
-			Display_Update(&g_env_data);
+			Display_Update();
 		}
 		//接收命令后重新判断阈值
 		if(UART_ProcessCommand(&g_threshold) == 1){
