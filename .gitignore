@@ -3,6 +3,10 @@ EM_System/MDK-ARM/EM_System/
 EM_System/MDK-ARM/DebugConfig/
 EM_System/MDK-ARM/*.uvguix.*
 EM_System/MDK-ARM/*.uvoptx
+EM_System/MDK-ARM/App/
+EM_System/MDK-ARM/User/
+EM_System/MDK-ARM/EventRecorderStub.scvd
+EM_System/build/
 *.axf
 *.bin
 *.crf

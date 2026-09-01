@@ -7,8 +7,12 @@
 
 #include "main.h"
 
-void Led_Open(void);
+void Led_ROpen(void);
 
-void Led_Close(void);
+void Led_RClose(void);
+
+void Led_GOpen(void);
+
+void Led_GClose(void);
 
 #endif

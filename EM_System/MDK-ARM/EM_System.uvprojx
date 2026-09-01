@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Core/Inc;../BSP/Inc;../App/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -754,57 +754,82 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>User</GroupName>
+          <GroupName>BSP</GroupName>
           <Files>
             <File>
-              <FileName>light.c</FileName>
+              <FileName>aht20.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Core\Src\light.c</FilePath>
-            </File>
-            <File>
-              <FileName>uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\uart.c</FilePath>
-            </File>
-            <File>
-              <FileName>environment.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\environment.c</FilePath>
-            </File>
-            <File>
-              <FileName>alarm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\alarm.c</FilePath>
-            </File>
-            <File>
-              <FileName>led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\led.c</FilePath>
+              <FilePath>..\BSP\Src\aht20.c</FilePath>
             </File>
             <File>
               <FileName>font.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Core\Src\font.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\oled.c</FilePath>
-            </File>
-            <File>
-              <FileName>display.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\display.c</FilePath>
-            </File>
-            <File>
-              <FileName>aht20.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\aht20.c</FilePath>
+              <FilePath>..\BSP\Src\font.c</FilePath>
             </File>
             <File>
               <FileName>key.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Core\Src\key.c</FilePath>
+              <FilePath>..\BSP\Src\key.c</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>light.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\light.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\motor.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>water.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\water.c</FilePath>
+            </File>
+            <File>
+              <FileName>smoke.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\smoke.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>App</GroupName>
+          <Files>
+            <File>
+              <FileName>alarm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\alarm.c</FilePath>
+            </File>
+            <File>
+              <FileName>display.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\display.c</FilePath>
+            </File>
+            <File>
+              <FileName>environment.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\environment.c</FilePath>
+            </File>
+            <File>
+              <FileName>protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\control.c</FilePath>
             </File>
           </Files>
         </Group>

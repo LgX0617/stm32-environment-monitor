@@ -29,13 +29,17 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "light.h"
-#include "uart.h"
+//#include "protocol.h"
 #include "environment.h"
 #include "alarm.h"
 #include "oled.h"
 #include "display.h"
 #include "aht20.h"
 #include "key.h"
+#include "control.h"
+#include "motor.h"
+#include "water.h"
+#include "smoke.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,9 +113,10 @@ int main(void)
 	HAL_Delay(20);
 	OLED_Init();
 	AHT20_Init();
-	UART_RxStart();
+//	UART_RxStart();
 	HAL_ADCEx_Calibration_Start(&hadc3);
 	HAL_TIM_Base_Start_IT(&htim2);
+	Motor_Init();
 
   /* USER CODE END 2 */
 
@@ -152,15 +157,20 @@ int main(void)
 		{
 			sample_flag =0;
 			g_env_data.light = Light_Read();
-      AHT20_read(&g_env_data);
+			AHT20_read(&g_env_data);
+			Fan_Control_Update(&g_env_data,&g_threshold);
+			Water_Control_Update();
+			Light_Control_Update(&g_env_data,&g_threshold);
+			g_env_data.water_alarm = Water_IsAlarm();
+			g_env_data.smoke_alarm = Smoke_IsAlarm();
 			Alarm_Update(&g_env_data,&g_threshold);
-			SensorData_Send(&g_env_data,&g_threshold);
+//			SensorData_Send(&g_env_data,&g_threshold);
 			Display_Update();
 		}
 		//接收命令后重新判断阈值
-		if(UART_ProcessCommand(&g_threshold) == 1){
-				Alarm_Update(&g_env_data,&g_threshold);
-			}
+//		if(UART_ProcessCommand(&g_threshold) == 1){
+//				Alarm_Update(&g_env_data,&g_threshold);
+//			}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

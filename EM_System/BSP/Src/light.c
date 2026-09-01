@@ -10,3 +10,5 @@ uint16_t Light_Read(){
 		return adc_value;
 }
 
+
+
