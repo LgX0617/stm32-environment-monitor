@@ -10,7 +10,6 @@ uint32_t key0_tick = 0;
 uint32_t key1_tick = 0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	uint32_t now = HAL_GetTick();
 
 	if(GPIO_Pin == KEY_UP_Pin)
 	{

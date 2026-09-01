@@ -12,7 +12,8 @@
 #define DEFAULT_LIGHT_OFF_THRESHOLD   800             //关闭灯光阈值
 
 void Light_Control_Update(const EnvironmentData* data,const Threshold* threshold);
-void Fan_Control_Update(const EnvironmentData* data,const Threshold* threshold);
-void Water_Control_Update(void);
+// void Fan_Control_Update(const EnvironmentData* data,const Threshold* threshold);
+// void Water_Control_Update(void);
+void Device_Control_Update(const EnvironmentData* data,const Threshold* threshold);
 
 #endif
