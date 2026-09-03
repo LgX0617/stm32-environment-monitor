@@ -42,9 +42,10 @@ typedef enum
 //参数编号
 typedef enum
 {
-    PARAM_TEMP_MAX  = 0x01,
-    PARAM_HUMI_MAX  = 0x02,
-    PARAM_LIGHT_DARK = 0x03
+    PARAM_TEMP_FAN_ON_MAX  = 0x01,
+    PARAM_TEMP_HIGH_ALARM_MAX = 0x02,
+    PARAM_HUMI_HIGH_ALARM_MAX = 0x03,
+    PARAM_LIGHT_DARK = 0x04
 } ParameterId_t;
 
 //错误码

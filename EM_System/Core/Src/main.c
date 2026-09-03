@@ -29,7 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "light.h"
-// #include "protocol.h"
+#include "protocol.h"
 #include "environment.h"
 #include "alarm.h"
 #include "oled.h"
@@ -116,7 +116,7 @@ int main(void)
   HAL_Delay(20);
   OLED_Init();
   AHT20_Init();
-  //	UART_RxStart();
+  UART_RxStart();
   HAL_ADCEx_Calibration_Start(&hadc3);
   HAL_TIM_Base_Start_IT(&htim2);
   Motor_Init();
@@ -172,7 +172,7 @@ int main(void)
       g_env_data.smoke_alarm = Smoke_IsAlarm();
       Device_Control_Update(&g_env_data, &g_threshold);
       Alarm_Update(&g_env_data, &g_threshold);
-      //			SensorData_Send(&g_env_data,&g_threshold);
+      SensorData_Send(&g_env_data,&g_threshold);
       Display_Update();
     }
     if (Voice_Process() == 1U)
@@ -180,10 +180,12 @@ int main(void)
       Alarm_Update(&g_env_data, &g_threshold);
       Display_Update();
     }
-    // 接收命令后重新判断阈值
-    //		if(UART_ProcessCommand(&g_threshold) == 1){
-    //				Alarm_Update(&g_env_data,&g_threshold);
-    //			}
+    /* 接收并成功更新阈值后，立即刷新报警与自动控制状态。 */
+    if (UART_ProcessCommand(&g_threshold) == 1U)
+    {
+      Alarm_Update(&g_env_data, &g_threshold);
+      Device_Control_Update(&g_env_data, &g_threshold);
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

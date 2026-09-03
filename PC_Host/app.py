@@ -1,4 +1,5 @@
 import tkinter as tk
+import queue
 from decimal import Decimal, InvalidOperation
 from tkinter import messagebox, ttk
 
@@ -10,9 +11,10 @@ from protocol import (
     CMD_DATA,
     CMD_ERROR,
     CMD_SET_THRESHOLD,
-    PARAM_HUMI_MAX,
+    PARAM_TEMP_FAN_ON_MAX,
+    PARAM_TEMP_HIGH_ALARM_MAX,
+    PARAM_HUMI_HIGH_ALARM_MAX,
     PARAM_LIGHT_DARK,
-    PARAM_TEMP_MAX,
     build_frame,
     decode_signed16,
 )
@@ -41,8 +43,9 @@ class MonitorApp(tk.Tk):
             "alarm": tk.StringVar(value="未知"),
         }
         self.threshold_vars = {
-            PARAM_TEMP_MAX: tk.StringVar(value="--.- C"),
-            PARAM_HUMI_MAX: tk.StringVar(value="--.- %"),
+            PARAM_TEMP_FAN_ON_MAX: tk.StringVar(value="--.- C"),
+            PARAM_TEMP_HIGH_ALARM_MAX: tk.StringVar(value="--.- C"),
+            PARAM_HUMI_HIGH_ALARM_MAX: tk.StringVar(value="--.- %"),
             PARAM_LIGHT_DARK: tk.StringVar(value="---- ADC"),
         }
         self.entries = {}
@@ -85,9 +88,10 @@ class MonitorApp(tk.Tk):
         thresholds = ttk.LabelFrame(root, text="阈值设置", padding=10)
         thresholds.pack(fill="x", pady=(12, 0))
         rows = (
-            (PARAM_TEMP_MAX, "温度上限", "-40.0 到 85.0 C"),
-            (PARAM_HUMI_MAX, "湿度上限", "0.0 到 100.0 %"),
-            (PARAM_LIGHT_DARK, "光照过暗", "0 到 4095 ADC"),
+            (PARAM_TEMP_FAN_ON_MAX, "风扇开启温度", "-40.0 到 85.0 C"),
+            (PARAM_TEMP_HIGH_ALARM_MAX, "高温报警温度", "-40.0 到 85.0 C"),
+            (PARAM_HUMI_HIGH_ALARM_MAX, "高湿报警阈值", "0.0 到 100.0 %"),
+            (PARAM_LIGHT_DARK, "光照开启阈值", "0 到 4095 ADC"),
         )
         for row, (parameter, title, hint) in enumerate(rows):
             ttk.Label(thresholds, text=title, width=12).grid(row=row, column=0, sticky="w", pady=4)
@@ -143,9 +147,9 @@ class MonitorApp(tk.Tk):
     def set_threshold(self, parameter):
         text = self.entries[parameter].get().strip()
         try:
-            if parameter == PARAM_TEMP_MAX:
+            if parameter in (PARAM_TEMP_FAN_ON_MAX, PARAM_TEMP_HIGH_ALARM_MAX):
                 raw = scaled_value(text, -40, 85)
-            elif parameter == PARAM_HUMI_MAX:
+            elif parameter == PARAM_HUMI_HIGH_ALARM_MAX:
                 raw = scaled_value(text, 0, 100)
             else:
                 raw = int(text)
@@ -172,39 +176,59 @@ class MonitorApp(tk.Tk):
                 event = self.worker.events.get_nowait()
                 if event[0] == "frame":
                     self.handle_frame(event[1], event[2])
-        except Exception:
+                elif event[0] == "error":
+                    self.log(event[1])
+        except queue.Empty:
             pass
+        except Exception as error:
+            self.log(f"界面处理异常: {error}")
         self.after(100, self.poll_events)
 
     def handle_frame(self, command, payload):
         if command == CMD_DATA:
+            if len(payload) != 17:
+                self.log(f"收到错误数据帧: CMD_DATA payload={len(payload)}")
+                return
             temperature = decode_signed16(payload[0], payload[1])
             humidity = (payload[2] << 8) | payload[3]
             light = (payload[4] << 8) | payload[5]
-            alarm = payload[6]
-            temp_limit = decode_signed16(payload[7], payload[8])
-            humidity_limit = (payload[9] << 8) | payload[10]
-            light_limit = (payload[11] << 8) | payload[12]
+            smoke_alarm = payload[6]
+            water_alarm = payload[7]
+            alarm = payload[8]
+            fan_temp_limit = decode_signed16(payload[9], payload[10])
+            high_temp_limit = decode_signed16(payload[11], payload[12])
+            humidity_limit = (payload[13] << 8) | payload[14]
+            light_limit = (payload[15] << 8) | payload[16]
 
             self.data_vars["temperature"].set(f"{temperature / 10:.1f} C")
             self.data_vars["humidity"].set(f"{humidity / 10:.1f} %")
             self.data_vars["light"].set(f"{light} ADC")
-            self.data_vars["alarm"].set("报警" if alarm else "正常")
-            self.threshold_vars[PARAM_TEMP_MAX].set(f"{temp_limit / 10:.1f} C")
-            self.threshold_vars[PARAM_HUMI_MAX].set(f"{humidity_limit / 10:.1f} %")
+            alarm_text = "报警" if alarm else "正常"
+            self.data_vars["alarm"].set(
+                f"{alarm_text} (烟:{smoke_alarm} 水:{water_alarm})"
+            )
+            self.threshold_vars[PARAM_TEMP_FAN_ON_MAX].set(f"{fan_temp_limit / 10:.1f} C")
+            self.threshold_vars[PARAM_TEMP_HIGH_ALARM_MAX].set(f"{high_temp_limit / 10:.1f} C")
+            self.threshold_vars[PARAM_HUMI_HIGH_ALARM_MAX].set(f"{humidity_limit / 10:.1f} %")
             self.threshold_vars[PARAM_LIGHT_DARK].set(f"{light_limit} ADC")
 
         elif command == CMD_ACK:
+            if len(payload) != 3:
+                self.log(f"收到错误 ACK: payload={len(payload)}")
+                return
             parameter = payload[0]
-            if parameter == PARAM_TEMP_MAX:
+            if parameter in (PARAM_TEMP_FAN_ON_MAX, PARAM_TEMP_HIGH_ALARM_MAX):
                 value = decode_signed16(payload[1], payload[2]) / 10
-            elif parameter == PARAM_HUMI_MAX:
+            elif parameter == PARAM_HUMI_HIGH_ALARM_MAX:
                 value = ((payload[1] << 8) | payload[2]) / 10
             else:
                 value = (payload[1] << 8) | payload[2]
             self.log(f"收到 ACK：参数 {parameter} 已设置为 {value}")
 
         elif command == CMD_ERROR:
+            if len(payload) != 1:
+                self.log(f"收到错误 ERROR: payload={len(payload)}")
+                return
             errors = {1: "参数编号错误", 2: "数值超出范围"}
             self.log(f"收到 ERROR：{errors.get(payload[0], '未知错误')}")
 

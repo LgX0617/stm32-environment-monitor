@@ -8,9 +8,10 @@ CMD_SET_THRESHOLD = 0x02
 CMD_ACK = 0x03
 CMD_ERROR = 0x04
 
-PARAM_TEMP_MAX = 0x01
-PARAM_HUMI_MAX = 0x02
-PARAM_LIGHT_DARK = 0x03
+PARAM_TEMP_FAN_ON_MAX = 0x01
+PARAM_TEMP_HIGH_ALARM_MAX = 0x02
+PARAM_HUMI_HIGH_ALARM_MAX = 0x03
+PARAM_LIGHT_DARK = 0x04
 
 RX_WAIT_HEAD = 0
 RX_GET_CMD = 1
@@ -18,7 +19,7 @@ RX_GET_DATA = 2
 RX_GET_CHECK = 3
 
 PAYLOAD_LENGTHS = {
-    CMD_DATA: 7,
+    CMD_DATA: 17,
     CMD_ACK: 3,
     CMD_ERROR: 1,
 }
@@ -37,12 +38,27 @@ def handle_frame(cmd, payload):
 
         humidity_x10 = (payload[2] << 8) | payload[3]
         light = (payload[4] << 8) | payload[5]
-        alarm = payload[6]
+        smoke_alarm = payload[6]
+        water_alarm = payload[7]
+        alarm = payload[8]
+        fan_temp_limit = (payload[9] << 8) | payload[10]
+        high_temp_limit = (payload[11] << 8) | payload[12]
+        if fan_temp_limit & 0x8000:
+            fan_temp_limit -= 0x10000
+        if high_temp_limit & 0x8000:
+            high_temp_limit -= 0x10000
+        humidity_limit = (payload[13] << 8) | payload[14]
+        light_limit = (payload[15] << 8) | payload[16]
 
         print(
             f"\n温度：{temperature_x10 / 10:.1f} C，"
             f"湿度：{humidity_x10 / 10:.1f} %，"
-            f"光照 ADC：{light}，报警：{alarm}"
+            f"光照 ADC：{light}，烟雾：{smoke_alarm}，"
+            f"水浸：{water_alarm}，报警：{alarm}，"
+            f"风扇阈值：{fan_temp_limit / 10:.1f} C，"
+            f"高温阈值：{high_temp_limit / 10:.1f} C，"
+            f"高湿阈值：{humidity_limit / 10:.1f} %，"
+            f"照明阈值：{light_limit}"
         )
 
     elif cmd == CMD_ACK:
@@ -139,7 +155,7 @@ try:
     receiver_thread.start()
 
     while True:
-        user_input = input("\n输入过暗阈值 0-4095，输入 q 退出：").strip()
+        user_input = input("\n输入照明开启阈值 0-4095，输入 q 退出：").strip()
 
         if user_input.lower() == "q":
             break

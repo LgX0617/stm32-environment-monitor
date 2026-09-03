@@ -1,5 +1,6 @@
 import queue
 import threading
+import time
 
 import serial
 
@@ -24,7 +25,7 @@ class SerialWorker:
             return
 
         self.serial = serial.Serial(
-            port=port,
+            port=None,
             baudrate=115200,
             bytesize=serial.EIGHTBITS,
             parity=serial.PARITY_NONE,
@@ -34,8 +35,24 @@ class SerialWorker:
             rtscts=False,
             dsrdtr=False,
         )
+        # Configure modem-control lines before opening.  Some USB-UART adapters
+        # reset the STM32 when DTR changes during Serial.open().
         self.serial.dtr = False
         self.serial.rts = False
+        self.serial.port = port
+        self.serial.open()
+        self.serial.reset_input_buffer()
+        self.serial.reset_output_buffer()
+        # If DTR is wired to the board's reset circuit, perform one controlled
+        # reset so the firmware starts its UART DMA reception from a clean state.
+        # Adapters without DTR wiring are unaffected.
+        try:
+            self.serial.dtr = True
+            time.sleep(0.05)
+            self.serial.dtr = False
+            time.sleep(0.15)
+        except serial.SerialException:
+            pass
         self.parser.reset()
         self.stop_event.clear()
         self.thread = threading.Thread(target=self._receive_loop, daemon=True)
@@ -43,9 +60,13 @@ class SerialWorker:
 
     def close(self):
         self.stop_event.set()
-        if self.serial is not None:
-            self.serial.close()
+        ser = self.serial
+        if ser is not None:
+            ser.close()
         self.serial = None
+        if self.thread and self.thread.is_alive():
+            self.thread.join(timeout=0.5)
+        self.thread = None
 
     def send(self, frame):
         if not self.is_open:
@@ -54,10 +75,17 @@ class SerialWorker:
             self.serial.write(frame)
 
     def _receive_loop(self):
-        while not self.stop_event.is_set() and self.is_open:
-            raw = self.serial.read(1)
+        while not self.stop_event.is_set():
+            ser = self.serial
+            if ser is None or not ser.is_open:
+                break
+            raw = ser.read(64)
             if not raw:
                 continue
-
-            for command, payload in self.parser.feed(raw):
+            try:
+                frames = self.parser.feed(raw)
+            except Exception as error:
+                self.events.put(("error", f"协议解析异常: {error}"))
+                continue
+            for command, payload in frames:
                 self.events.put(("frame", command, payload))
