@@ -97,3 +97,16 @@ make
 STM32 通过 USART2（PA2/PA3）与 USB 转串口或 JDY-33 蓝牙模块通信，串口参数为 `9600`、`8N1`、无校验、无流控。环境数据定时上报，上位机可下发阈值设置帧；协议实现位于 `EM_System/App/Src/protocol.c`，Python 上位机位于 `PC_Host/`。
 
 > 注意：使用 JDY-33 时，模块串口速率必须与 USART2 的 9600 一致。手机蓝牙串口工具可直接使用；电脑端只有在蓝牙驱动创建可用的虚拟 COM 口后，Python 上位机才能通过 PySerial 连接。
+
+## FreeRTOS 运行方式
+
+工程已通过 STM32CubeMX 启用 FreeRTOS，并使用 CMSIS-RTOS v1 接口。CubeMX 配置保存在 `EM_System/EM_System.ioc`，FreeRTOS 内核及 Cortex-M3 端口位于 `EM_System/Middlewares/Third_Party/FreeRTOS/`。
+
+系统启动流程如下：
+
+1. `main()` 完成时钟、GPIO、DMA、ADC、定时器和串口等硬件初始化。
+2. `MX_FREERTOS_Init()` 创建 RTOS 任务及内核对象。
+3. `osKernelStart()` 启动调度器，此后业务代码由 RTOS 任务执行。
+4. 环境采样、按键处理、设备控制、报警、显示、语音和串口协议处理位于 `EM_System/Core/Src/freertos.c` 的 `StartDefaultTask()` 中。
+
+`main()` 中原有的裸机轮询循环已停用，不会与 RTOS 任务重复执行。需要新增周期业务时，应放入任务中，并通过 `osDelay()` 等 RTOS 延时接口让出 CPU；不要在任务中编写不阻塞的永久忙循环。

@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "i2c.h"
@@ -66,6 +67,7 @@ volatile uint8_t sample_flag = 0; // 定时器中断完成标志
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -124,8 +126,18 @@ int main(void)
 
   /* USER CODE END 2 */
 
-  /* Infinite loop */
+  /* Create the FreeRTOS objects configured in freertos.c. */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
+  /* The scheduler owns execution after osKernelStart(). */
+  Error_Handler();
   /* USER CODE BEGIN WHILE */
+  #if 0
   while (1)
   {
     if (key_up_flag == 1U)
@@ -190,6 +202,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   }
+  #endif
   /* USER CODE END 3 */
 }
 

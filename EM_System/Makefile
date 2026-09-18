@@ -3,9 +3,9 @@ BUILD := build
 CC := arm-none-eabi-gcc
 OBJCOPY := arm-none-eabi-objcopy
 CFLAGS := -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -std=gnu11 -Wall -Wextra -ffunction-sections -fdata-sections -g3 -O0 -DUSE_HAL_DRIVER -DSTM32F103xE
-CPPFLAGS := -ICore/Inc -IBSP/Inc -IApp/Inc -IDrivers/STM32F1xx_HAL_Driver/Inc -IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy -IDrivers/CMSIS/Device/ST/STM32F1xx/Include -IDrivers/CMSIS/Include
+CPPFLAGS := -ICore/Inc -IBSP/Inc -IApp/Inc -IMiddlewares/Third_Party/FreeRTOS/Source/include -IMiddlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -IDrivers/STM32F1xx_HAL_Driver/Inc -IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy -IDrivers/CMSIS/Device/ST/STM32F1xx/Include -IDrivers/CMSIS/Include
 LDFLAGS := -TSTM32F103ZE.ld -mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(BUILD)/$(TARGET).map --specs=nano.specs --specs=nosys.specs
-SOURCES := $(wildcard Core/Src/*.c) $(wildcard BSP/Src/*.c) $(wildcard App/Src/*.c) $(wildcard Drivers/STM32F1xx_HAL_Driver/Src/*.c) startup_stm32f103xe_gcc.s
+SOURCES := $(wildcard Core/Src/*.c) $(wildcard BSP/Src/*.c) $(wildcard App/Src/*.c) $(wildcard Drivers/STM32F1xx_HAL_Driver/Src/*.c) $(wildcard Middlewares/Third_Party/FreeRTOS/Source/*.c) Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/port.c Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c startup_stm32f103xe_gcc.s
 OBJECTS := $(patsubst %.c,$(BUILD)/%.o,$(filter %.c,$(SOURCES))) $(BUILD)/startup_stm32f103xe_gcc.o
 
 all: $(BUILD)/$(TARGET).elf $(BUILD)/$(TARGET).hex $(BUILD)/$(TARGET).bin
